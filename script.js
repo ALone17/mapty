@@ -264,6 +264,8 @@ class App {
 
         if (e.target.classList.contains('remove__btn')) return;
 
+        if (e.target.classList.contains('edit__btn')) return;
+
         if (!workoutEl) return;
 
         const workout = this.#workouts.find(work => work.id === workoutEl.dataset.id);
@@ -295,6 +297,7 @@ class App {
     //Init button workout
     _initRemoveBtn() {
         document.querySelector('.remove__btn').addEventListener('click', this._removeWorkout.bind(this));
+        document.querySelector('.edit__btn').addEventListener('click', this._editWorkout.bind(this));
     }
 
     // Remove function
@@ -303,7 +306,6 @@ class App {
         this.#workouts.forEach((work, i) => {
             if (work.id === idRemove) {
                 this.#workouts.splice(i, 1);
-                console.log(this.#marker[i]);
                 this.#marker[i].remove();
                 this.#marker.splice(i, 1);
             }
@@ -314,7 +316,26 @@ class App {
 
     //Edit function
     _editWorkout(e) {
-        form.classList.remove('.hidden')
+        const curId = e.target.closest('.workout').dataset.id;
+        console.log(curId);
+        const [curWork] = this.#workouts.filter(work => work.id === curId);
+        const latlng = {
+            latlng: {
+                lat: curWork.coords[0],
+                lng: curWork.coords[1],
+            }
+        };
+        inputDistance.value = `${curWork.distance}`;
+        inputDuration.value = `${curWork.duration}`;
+        inputCadence.value = curWork.cadence ? `${curWork.cadence}` : '';
+        inputElevation.value = curWork.ElevationGain ? `${curWork.ElevationGain}` : '';
+        if (inputType.value !== curWork.type) {
+            this._toggelElevetionField();
+            inputType.value = curWork.type;
+        }
+        this._showForm(latlng)
+
+        this._removeWorkout(e);
     }
 }
 
