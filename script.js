@@ -316,7 +316,7 @@ class App {
         });
         this._setLocalStorage();
         e.target.closest('.workout').remove();
-        if (this.#workouts.length < 1) btn_DEAD.style.display = 'none';
+        if (this.#workouts.length <= 1) btn_DEAD.style.display = 'none';
     }
 
     //Edit function
