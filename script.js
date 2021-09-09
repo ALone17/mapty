@@ -70,6 +70,7 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
+
 class App {
 
     #map;
@@ -190,6 +191,8 @@ class App {
         this._renderWorkoutMarker(workout);
         //Render workout on list
         this._renderWorkout(workout);
+        //Add remove event for workout
+        this._initRemoveBtn();
         //Hide form and clear input fields
         this._hideForm();
         //Set local storage to all workouts
@@ -232,7 +235,8 @@ class App {
             <span class="workout__value">${workout.cadence}</span>
             <span class="workout__unit">spm</span>
         </div>
-        <button class= "workout__btn">Remove</button>
+        <button class= "remove__btn">Remove</button>
+        <button class= "edit__btn">Edit</button>
     </li>`
         }
         if (workout.type === 'cycling') {
@@ -247,17 +251,18 @@ class App {
             <span class="workout__value">${workout.ElevationGain}</span>
             <span class="workout__unit">m</span>
         </div>
-        <button class= "workout__btn">Remove</button>
+        <button class= "remove__btn">Remove</button>
+        <button class= "edit__btn">Edit</button>
     </li>`
         }
         form.insertAdjacentHTML('afterend', html);
-        document.querySelector('.workout__btn').addEventListener('click', this._removeWorkout.bind(this));
+        // document.querySelector('.remove__btn').addEventListener('click', this._removeWorkout.bind(this));
     }
 
     _moveToPopup(e) {
         const workoutEl = e.target.closest('.workout');
 
-        if (e.target.classList.contains('workout__btn')) return;
+        if (e.target.classList.contains('remove__btn')) return;
 
         if (!workoutEl) return;
 
@@ -279,6 +284,7 @@ class App {
 
         this.#workouts.forEach(work => {
             this._renderWorkout(work)
+            this._initRemoveBtn();
         });
     }
     reset() {
@@ -286,6 +292,12 @@ class App {
         location.reload();
     }
 
+    //Init button workout
+    _initRemoveBtn() {
+        document.querySelector('.remove__btn').addEventListener('click', this._removeWorkout.bind(this));
+    }
+
+    // Remove function
     _removeWorkout(e) {
         const idRemove = e.target.closest('.workout').dataset.id;
         this.#workouts.forEach((work, i) => {
@@ -297,7 +309,12 @@ class App {
             }
         });
         this._setLocalStorage();
-        e.target.closest('.workout').style.display = 'none';
+        e.target.closest('.workout').remove();
+    }
+
+    //Edit function
+    _editWorkout(e) {
+        form.classList.remove('.hidden')
     }
 }
 
