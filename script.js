@@ -121,6 +121,7 @@ class App {
         this.#workouts.forEach(work => {
             this._renderWorkoutMarker(work);
         });
+        if (this.#workouts.length > 1) btn_DEAD.style.display = 'block';
     }
 
     _showForm(mapE) {
@@ -315,6 +316,7 @@ class App {
         });
         this._setLocalStorage();
         e.target.closest('.workout').remove();
+        if (this.#workouts.length < 1) btn_DEAD.style.display = 'none';
     }
 
     //Edit function
