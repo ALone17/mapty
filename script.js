@@ -69,6 +69,7 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
+const btn_DEAD = document.querySelector('.remove--all__btn');
 
 
 class App {
@@ -89,6 +90,7 @@ class App {
         form.addEventListener('submit', this._newWorkout.bind(this));
         inputType.addEventListener('change', this._toggelElevetionField);
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
+        btn_DEAD.addEventListener('click', this._removeAllWorkouts.bind(this));
 
     }
 
@@ -186,6 +188,7 @@ class App {
         }
         //Add new object to workout array
         this.#workouts.push(workout);
+        if (this.#workouts.length > 1) btn_DEAD.style.display = 'block';
 
         //Render workout on map as marker
         this._renderWorkoutMarker(workout);
@@ -336,6 +339,15 @@ class App {
         this._showForm(latlng)
 
         this._removeWorkout(e);
+    }
+
+    _removeAllWorkouts() {
+        this.#workouts = [];
+        this.#marker.forEach(mark => mark.remove());
+        this._setLocalStorage();
+        console.log('worked!');
+        containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
+        btn_DEAD.style.display = 'none';
     }
 }
 
