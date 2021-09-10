@@ -70,6 +70,8 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 const btn_DEAD = document.querySelector('.remove--all__btn');
+const btn_sort = document.querySelector('.sort--all__btn');
+const form_sort = document.querySelector('.form__sort');
 
 
 class App {
@@ -91,6 +93,7 @@ class App {
         inputType.addEventListener('change', this._toggelElevetionField);
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
         btn_DEAD.addEventListener('click', this._removeAllWorkouts.bind(this));
+        btn_sort.addEventListener('click', this._sorthWorkouts.bind(this));
 
     }
 
@@ -121,7 +124,10 @@ class App {
         this.#workouts.forEach(work => {
             this._renderWorkoutMarker(work);
         });
+        // show btn after load
         if (this.#workouts.length > 1) btn_DEAD.style.display = 'block';
+        if (this.#workouts.length > 1) btn_sort.style.display = 'block';
+        if (this.#workouts.length > 1) form_sort.style.display = 'block';
     }
 
     _showForm(mapE) {
@@ -189,7 +195,10 @@ class App {
         }
         //Add new object to workout array
         this.#workouts.push(workout);
+        // Show btn after add new workout
         if (this.#workouts.length > 1) btn_DEAD.style.display = 'block';
+        if (this.#workouts.length > 1) btn_sort.style.display = 'block';
+        if (this.#workouts.length > 1) form_sort.style.display = 'block';
 
         //Render workout on map as marker
         this._renderWorkoutMarker(workout);
@@ -260,7 +269,7 @@ class App {
     </li>`
         }
         form.insertAdjacentHTML('afterend', html);
-        // document.querySelector('.remove__btn').addEventListener('click', this._removeWorkout.bind(this));
+
     }
 
     _moveToPopup(e) {
@@ -316,7 +325,10 @@ class App {
         });
         this._setLocalStorage();
         e.target.closest('.workout').remove();
+        // hide btn after delete workout
         if (this.#workouts.length <= 1) btn_DEAD.style.display = 'none';
+        if (this.#workouts.length <= 1) btn_sort.style.display = 'none';
+        if (this.#workouts.length <= 1) form_sort.style.display = 'none';
     }
 
     //Edit function
@@ -350,7 +362,21 @@ class App {
         console.log('worked!');
         containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
         btn_DEAD.style.display = 'none';
+        btn_sort.style.display = 'none';
+        form_sort.style.display = 'none';
     }
+
+    _sorthWorkouts() {
+        let sortArr = []
+        this.#workouts.forEach(el => sortArr.push(el));
+        sortArr.sort((a, b) => a[`${form_sort.value}`] - b[`${form_sort.value}`]);
+        console.log(form_sort.value);
+        console.log(this.#workouts);
+        containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
+        if (form_sort.value !== 'data') sortArr.forEach(el => this._renderWorkout(el));
+        if (form_sort.value === 'data') this.#workouts.forEach(el => this._renderWorkout(el));
+    }
+
 }
 
 

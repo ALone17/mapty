@@ -235,3 +235,16 @@ a:visited {
 .remove--all__btn:hover {
   background-color: #42484d;
 }
+.sort--all__btn {
+  display: none;
+  position: absolute;
+  top: 120px;
+  border: none;
+}
+.form__sort {
+  display: none;
+  position: absolute;
+  top: 115px;
+  left: 130px;
+  width: 120px;
+}
