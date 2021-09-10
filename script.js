@@ -69,9 +69,10 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
+const form_sort = document.querySelector('.form__sort');
 const btn_DEAD = document.querySelector('.remove--all__btn');
 const btn_sort = document.querySelector('.sort--all__btn');
-const form_sort = document.querySelector('.form__sort');
+const sidebar = document.querySelector('.sidebar');
 
 
 class App {
@@ -92,8 +93,7 @@ class App {
         form.addEventListener('submit', this._newWorkout.bind(this));
         inputType.addEventListener('change', this._toggelElevetionField);
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
-        btn_DEAD.addEventListener('click', this._removeAllWorkouts.bind(this));
-        btn_sort.addEventListener('click', this._sorthWorkouts.bind(this));
+        sidebar.addEventListener('click', this._initRemoveBtn.bind(this));
 
     }
 
@@ -204,8 +204,6 @@ class App {
         this._renderWorkoutMarker(workout);
         //Render workout on list
         this._renderWorkout(workout);
-        //Add remove event for workout
-        this._initRemoveBtn();
         //Hide form and clear input fields
         this._hideForm();
         //Set local storage to all workouts
@@ -297,10 +295,7 @@ class App {
 
         this.#workouts = data;
 
-        this.#workouts.forEach(work => {
-            this._renderWorkout(work)
-            this._initRemoveBtn();
-        });
+        this.#workouts.forEach(work => this._renderWorkout(work));
     }
     reset() {
         localStorage.removeItem('workouts');
@@ -308,9 +303,11 @@ class App {
     }
 
     //Init button workout
-    _initRemoveBtn() {
-        document.querySelector('.remove__btn').addEventListener('click', this._removeWorkout.bind(this));
-        document.querySelector('.edit__btn').addEventListener('click', this._editWorkout.bind(this));
+    _initRemoveBtn(e) {
+        if (e.target.classList.contains('remove__btn')) this._removeWorkout(e);
+        if (e.target.classList.contains('edit__btn')) this._editWorkout(e);
+        if (e.target.classList.contains('remove--all__btn')) this._removeAllWorkouts();
+        if (e.target.classList.contains('sort--all__btn')) this._sorthWorkouts();
     }
 
     // Remove function
@@ -376,14 +373,8 @@ class App {
         console.log(form_sort.value);
         console.log(this.#workouts);
         containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
-        if (form_sort.value !== 'data') sortArr.forEach(el => {
-            this._renderWorkout(el);
-            this._initRemoveBtn();
-        });
-        if (form_sort.value === 'data') this.#workouts.forEach(el => {
-            this._renderWorkout(el);
-            this._initRemoveBtn();
-        });
+        if (form_sort.value !== 'data') sortArr.forEach(el => this._renderWorkout(el));
+        if (form_sort.value === 'data') this.#workouts.forEach(el => this._renderWorkout(el));
 
     }
 
