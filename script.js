@@ -325,6 +325,9 @@ class App {
         });
         this._setLocalStorage();
         e.target.closest('.workout').remove();
+        console.log(this.#workouts);
+
+
         // hide btn after delete workout
         if (this.#workouts.length <= 1) btn_DEAD.style.display = 'none';
         if (this.#workouts.length <= 1) btn_sort.style.display = 'none';
@@ -373,8 +376,15 @@ class App {
         console.log(form_sort.value);
         console.log(this.#workouts);
         containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
-        if (form_sort.value !== 'data') sortArr.forEach(el => this._renderWorkout(el));
-        if (form_sort.value === 'data') this.#workouts.forEach(el => this._renderWorkout(el));
+        if (form_sort.value !== 'data') sortArr.forEach(el => {
+            this._renderWorkout(el);
+            this._initRemoveBtn();
+        });
+        if (form_sort.value === 'data') this.#workouts.forEach(el => {
+            this._renderWorkout(el);
+            this._initRemoveBtn();
+        });
+
     }
 
 }
