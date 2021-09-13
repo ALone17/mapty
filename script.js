@@ -143,6 +143,8 @@ class App {
         });
         // show btn after load
         this._ControllShowWorkouts(this.#workouts);
+
+
     }
 
     _showForm(mapE) {
@@ -229,7 +231,7 @@ class App {
         const a = L.marker(workout.coords).addTo(this.#map)
         a.bindPopup(L.popup({ maxWidth: 250, minWidth: 100, autoClose: false, closeOnClick: false, className: `${workout.type}-popup` }))
             .setPopupContent(`${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'} ${workout.description}`)
-            .openPopup();
+        //.openPopup()
         this.#marker.push(a);
     }
 
