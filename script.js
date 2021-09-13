@@ -125,9 +125,7 @@ class App {
             this._renderWorkoutMarker(work);
         });
         // show btn after load
-        if (this.#workouts.length > 1) btn_DEAD.style.display = 'block';
-        if (this.#workouts.length > 1) btn_sort.style.display = 'block';
-        if (this.#workouts.length > 1) form_sort.style.display = 'block';
+        this._ControllShowWorkouts(this.#workouts);
     }
 
     _showForm(mapE) {
@@ -196,9 +194,7 @@ class App {
         //Add new object to workout array
         this.#workouts.push(workout);
         // Show btn after add new workout
-        if (this.#workouts.length > 1) btn_DEAD.style.display = 'block';
-        if (this.#workouts.length > 1) btn_sort.style.display = 'block';
-        if (this.#workouts.length > 1) form_sort.style.display = 'block';
+        this._ControllShowWorkouts(this.#workouts);
 
         //Render workout on map as marker
         this._renderWorkoutMarker(workout);
@@ -285,6 +281,7 @@ class App {
     }
 
     _setLocalStorage() {
+        console.log(this.#workouts);
         localStorage.setItem('workouts', JSON.stringify(this.#workouts));
     }
 
@@ -292,9 +289,17 @@ class App {
         const data = JSON.parse(localStorage.getItem('workouts'));
 
         if (!data) return;
+        const CorrectTypeData = [];
+        data.forEach(work => {
+            const corrData = work.type === 'running' ?
+                new Running(work.coords, work.distance, work.duration, work.cadence) : new Cycling(work.coords, work.distance, work.duration, work.ElevationGain);
+            corrData.date = work.date;
+            corrData.id = work.id;
+            corrData.description = work.description;
+            CorrectTypeData.push(corrData);
+        });
 
-        this.#workouts = data;
-
+        this.#workouts = CorrectTypeData;
         this.#workouts.forEach(work => this._renderWorkout(work));
     }
     reset() {
@@ -326,9 +331,7 @@ class App {
 
 
         // hide btn after delete workout
-        if (this.#workouts.length <= 1) btn_DEAD.style.display = 'none';
-        if (this.#workouts.length <= 1) btn_sort.style.display = 'none';
-        if (this.#workouts.length <= 1) form_sort.style.display = 'none';
+        this._ControllShowWorkouts(this.#workouts);
     }
 
     //Edit function
@@ -376,6 +379,12 @@ class App {
         if (form_sort.value !== 'data') sortArr.forEach(el => this._renderWorkout(el));
         if (form_sort.value === 'data') this.#workouts.forEach(el => this._renderWorkout(el));
 
+    }
+
+    _ControllShowWorkouts(workouts) {
+        [btn_DEAD, btn_sort, form_sort].forEach(el => {
+            workouts.length > 1 ? el.style.display = 'block' : el.style.display = 'none';
+        });
     }
 
 }
