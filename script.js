@@ -73,6 +73,7 @@ const form_sort = document.querySelector('.form__sort');
 const btn_DEAD = document.querySelector('.remove--all__btn');
 const btn_sort = document.querySelector('.sort--all__btn');
 const sidebar = document.querySelector('.sidebar');
+const show_all_btn = document.querySelector('.show--all__btn');
 
 
 class App {
@@ -94,18 +95,34 @@ class App {
         inputType.addEventListener('change', this._toggelElevetionField);
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
         sidebar.addEventListener('click', this._initRemoveBtn.bind(this));
+        [inputCadence, inputDistance, inputDuration, inputElevation].forEach(el =>
+            el.addEventListener('click', function () {
+                if (document.querySelector('.errorMessage')) { document.querySelector('.errorMessage').remove(); }
+            }));
 
     }
 
     _getPosition() {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(this._loadMap.bind(this),
-                function () {
-                    alert('Не могу получить месторасположение');
-                });
+            navigator.geolocation.getCurrentPosition(this._loadMap.bind(this), this._errorMessage.bind(this));
 
 
         }
+    }
+
+    _errorMessage(errGeo) {
+        if (errGeo) {
+            document.querySelector('#map').insertAdjacentHTML('afterbegin', '<span class="errorMessage">Не могу получить месторасположение.</br><b> Нет доступа к геоданным</span>');
+            console.error(`Не могу получить месторасположение.Нет доступа к геоданным ${errGeo.message}`);
+        }
+        if (!errGeo && (!document.querySelector('.errorMessage'))) {
+            form.insertAdjacentHTML('afterend', '<span class="errorMessage">Ввод должен быть позитивным числом!</span>');
+            document.querySelector('.errorMessage').style.left = '3%';
+            document.querySelector('.errorMessage').style.top = '15%';
+            inputType.focus();
+        }
+        if (document.querySelector('.errorMessage')) return;
+
     }
 
     _loadMap(pos) {
@@ -178,7 +195,7 @@ class App {
                 //     || !Number.isFinite(duration)
                 //     || !Number.isFinite(cadence)
                 !validInputs(duration, distance, cadence) || !allPositive(duration, distance, cadence))
-                return alert('Inputs have to be positive numbers!');
+                return this._errorMessage();
 
             workout = new Running([lat, lng], distance, duration, cadence);
 
@@ -187,7 +204,7 @@ class App {
         if (type === 'cycling') {
             const elevation = +inputElevation.value;
             if (!validInputs(duration, distance, elevation) || !allPositive(duration, distance))
-                return alert('Inputs have to be positive numbers!');
+                return this._errorMessage();
 
             workout = new Cycling([lat, lng], distance, duration, elevation);
         }
@@ -281,7 +298,6 @@ class App {
     }
 
     _setLocalStorage() {
-        console.log(this.#workouts);
         localStorage.setItem('workouts', JSON.stringify(this.#workouts));
     }
 
@@ -297,6 +313,7 @@ class App {
             corrData.id = work.id;
             corrData.description = work.description;
             CorrectTypeData.push(corrData);
+
         });
 
         this.#workouts = CorrectTypeData;
@@ -313,6 +330,8 @@ class App {
         if (e.target.classList.contains('edit__btn')) this._editWorkout(e);
         if (e.target.classList.contains('remove--all__btn')) this._removeAllWorkouts();
         if (e.target.classList.contains('sort--all__btn')) this._sorthWorkouts();
+        if (e.target.classList.contains('show--all__btn') && this.#map) this._showAllWorkouts();
+        return;
     }
 
     // Remove function
@@ -327,7 +346,6 @@ class App {
         });
         this._setLocalStorage();
         e.target.closest('.workout').remove();
-        console.log(this.#workouts);
 
 
         // hide btn after delete workout
@@ -337,7 +355,6 @@ class App {
     //Edit function
     _editWorkout(e) {
         const curId = e.target.closest('.workout').dataset.id;
-        console.log(curId);
         const [curWork] = this.#workouts.filter(work => work.id === curId);
         const latlng = {
             latlng: {
@@ -362,30 +379,31 @@ class App {
         this.#workouts = [];
         this.#marker.forEach(mark => mark.remove());
         this._setLocalStorage();
-        console.log('worked!');
         containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
-        btn_DEAD.style.display = 'none';
-        btn_sort.style.display = 'none';
-        form_sort.style.display = 'none';
+        this._ControllShowWorkouts(this.#workouts);
     }
 
     _sorthWorkouts() {
         let sortArr = []
         this.#workouts.forEach(el => sortArr.push(el));
         sortArr.sort((a, b) => a[`${form_sort.value}`] - b[`${form_sort.value}`]);
-        console.log(form_sort.value);
-        console.log(this.#workouts);
         containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
         if (form_sort.value !== 'data') sortArr.forEach(el => this._renderWorkout(el));
         if (form_sort.value === 'data') this.#workouts.forEach(el => this._renderWorkout(el));
 
     }
 
+    _showAllWorkouts() {
+        const coords = this.#workouts.map(work => work.coords);
+        this.#map.fitBounds(coords)
+    }
+
     _ControllShowWorkouts(workouts) {
-        [btn_DEAD, btn_sort, form_sort].forEach(el => {
+        [btn_DEAD, btn_sort, form_sort, show_all_btn].forEach(el => {
             workouts.length > 1 ? el.style.display = 'block' : el.style.display = 'none';
         });
     }
+
 
 }
 

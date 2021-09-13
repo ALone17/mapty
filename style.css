@@ -248,3 +248,32 @@ a:visited {
   left: 130px;
   width: 120px;
 }
+
+.errorMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: red;
+  text-align: center;
+  font-size: 23px;
+}
+.show--all__btn {
+  display: none;
+  position: absolute;
+
+  background-color: #119227;
+  border-radius: 3%;
+  border: 2px solid #42484d;
+  font-size: 15px;
+  border: none;
+  padding: 15px 15px;
+  cursor: pointer;
+  transition-duration: 0.5s;
+  color: #aaa;
+  margin-left: 300px;
+  margin-top: -47px;
+}
+
+.show--all__btn:hover {
+  background-color: #42484d;
+}
