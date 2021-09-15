@@ -8,6 +8,7 @@
 class Workout {
     date = new Date();
     id = Date.now() + ''.slice(-10);
+    type_draw = type_draw.value;
 
 
     constructor(coords, distance, duration) {
@@ -63,6 +64,7 @@ class Cycling extends Workout {
 ////////////////////////////////////////////////////////////////////
 //Archetecture App
 const form = document.querySelector('.form');
+const type_draw = document.querySelector('.type_draw');
 const containerWorkouts = document.querySelector('.workouts');
 const inputType = document.querySelector('.form__input--type');
 const inputDistance = document.querySelector('.form__input--distance');
@@ -82,7 +84,11 @@ class App {
     #mapZoomLevel = 13;
     #mapEvent;
     #workouts = [];
+    #curworkout;
     #marker = [];
+    #circle = [];
+    #line = [];
+    #temporarymarker;
 
     constructor() {
         //Get user's position
@@ -136,10 +142,12 @@ class App {
         }).addTo(this.#map);
 
         //Handling click map
-        this.#map.on('click', this._showForm.bind(this));
+        if (form.classList.contains('hidden')) this.#map.on('click', this._showForm.bind(this));
 
         this.#workouts.forEach(work => {
-            this._renderWorkoutMarker(work);
+            console.log(work.line_coord);
+            work.type_draw === 'Circle' ?
+                this._renderWorkoutMarker(work) : this._renderWorkoutLine(null, work.line_coord);
         });
         // show btn after load
         this._ControllShowWorkouts(this.#workouts);
@@ -148,8 +156,11 @@ class App {
     }
 
     _showForm(mapE) {
-        this.#mapEvent = mapE.latlng;
+        if (form.classList.contains('hidden')) this.#mapEvent = mapE.latlng;
+        console.log(this.#mapEvent);
+        // console.log(form.closest('.form'));
         form.classList.remove('hidden');
+        type_draw.classList.remove('hidden');
         inputDistance.focus();
     }
 
@@ -167,6 +178,7 @@ class App {
 
         form.style.display = 'none';
         form.classList.add('hidden');
+        type_draw.classList.add('hidden');
         setTimeout(() => form.style.display = 'grid', 1000);
 
     }
@@ -200,6 +212,7 @@ class App {
                 return this._errorMessage();
 
             workout = new Running([lat, lng], distance, duration, cadence);
+            this.#curworkout = workout;
 
         }
         //If workout cycling, create cycling object
@@ -209,14 +222,20 @@ class App {
                 return this._errorMessage();
 
             workout = new Cycling([lat, lng], distance, duration, elevation);
+            this.#curworkout = workout;
         }
         //Add new object to workout array
         this.#workouts.push(workout);
         // Show btn after add new workout
         this._ControllShowWorkouts(this.#workouts);
 
-        //Render workout on map as marker
-        this._renderWorkoutMarker(workout);
+        //Render workout on map as marker or line
+        if (workout.type_draw === 'Circle') this._renderWorkoutMarker(workout)
+        if (workout.type_draw === 'Line') {
+            this.#map.off('click');
+            this.#map.on('click', this._renderWorkoutLine.bind(this));
+        }
+
         //Render workout on list
         this._renderWorkout(workout);
         //Hide form and clear input fields
@@ -230,10 +249,45 @@ class App {
 
         const a = L.marker(workout.coords).addTo(this.#map)
         a.bindPopup(L.popup({ maxWidth: 250, minWidth: 100, autoClose: false, closeOnClick: false, className: `${workout.type}-popup` }))
-            .setPopupContent(`${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'} ${workout.description}`)
-        //.openPopup()
+            .setPopupContent(`${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'} ${workout.description} on Circle`)
+        // .openPopup()
         this.#marker.push(a);
+        const latlng = [workout.coords];
+        const lineTest = L.circle(...latlng, { radius: (workout.distance / 2) * 100, color: 'green' }).addTo(this.#map);
+        this.#circle.push(lineTest);
     }
+
+    // Create line on map
+    _renderWorkoutLine(mapE, work) {
+
+        if (mapE) {
+            if (this.#temporarymarker) this.#temporarymarker.remove();
+            const { lat, lng } = mapE.latlng;
+            this.#line.push([lat, lng]);
+            this.#temporarymarker = L.marker([lat, lng]).addTo(this.#map)
+        }
+
+        if (this.#line.length === 2) {
+            const a = L.polyline(this.#line).addTo(this.#map);
+            this.#marker.push(a);
+            this.#workouts.forEach(work => {
+                if (this.#curworkout.id === work.id) work.line_coord = this.#line;
+            });
+            this._setLocalStorage();
+            this.#line = [];
+            this.#map.off('click');
+            this.#map.on('click', this._showForm.bind(this));
+            const delmark = marker => marker.remove();
+            setTimeout(delmark, 300, this.#temporarymarker);
+        }
+
+        if (work) {
+            const a = L.polyline(work).addTo(this.#map);
+            this.#marker.push(a);
+        }
+    }
+
+
 
     _renderWorkout(workout) {
         let html = `<li class="workout workout--${workout.type}" data-id="${workout.id}">
@@ -314,8 +368,9 @@ class App {
             corrData.date = work.date;
             corrData.id = work.id;
             corrData.description = work.description;
+            corrData.type_draw = work.type_draw;
+            corrData.line_coord = work.line_coord;
             CorrectTypeData.push(corrData);
-
         });
 
         this.#workouts = CorrectTypeData;
@@ -344,6 +399,10 @@ class App {
                 this.#workouts.splice(i, 1);
                 this.#marker[i].remove();
                 this.#marker.splice(i, 1);
+                if (work.type_draw === 'Circle') {
+                    this.#circle[i].remove();
+                    this.#circle.splice(i, 1);
+                }
             }
         });
         this._setLocalStorage();
@@ -380,6 +439,9 @@ class App {
     _removeAllWorkouts() {
         this.#workouts = [];
         this.#marker.forEach(mark => mark.remove());
+        this.#marker = [];
+        this.#circle.forEach(mark => mark.remove());
+        this.#circle = [];
         this._setLocalStorage();
         containerWorkouts.querySelectorAll('.workout').forEach(el => el.remove());
         this._ControllShowWorkouts(this.#workouts);
@@ -395,6 +457,7 @@ class App {
 
     }
 
+    // Позиционирует карту на все тренировки
     _showAllWorkouts() {
         const coords = this.#workouts.map(work => work.coords);
         this.#map.fitBounds(coords)
