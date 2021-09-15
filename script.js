@@ -245,11 +245,13 @@ class App {
 
     }
 
-    _renderWorkoutMarker(workout) {
-
+    _renderWorkoutMarker = async function (workout) {
+        const prom = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${workout.coords[0]}&longitude=${workout.coords[1]}&localityLanguage=ru `);
+        const res = await prom.json();
+        console.log(res);
         const a = L.marker(workout.coords).addTo(this.#map)
         a.bindPopup(L.popup({ maxWidth: 250, minWidth: 100, autoClose: false, closeOnClick: false, className: `${workout.type}-popup` }))
-            .setPopupContent(`${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'} ${workout.description} on Circle`)
+            .setPopupContent(`${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'} ${workout.description} Run in ${res.city ? res.city : res.locality}, ${res.countryName}`);
         // .openPopup()
         this.#marker.push(a);
         const latlng = [workout.coords];
@@ -470,10 +472,13 @@ class App {
     }
 
 
+
+
 }
 
 
 const app = new App();
+
 
 
 
