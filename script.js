@@ -291,7 +291,8 @@ class App {
 
 
 
-    _renderWorkout(workout) {
+    _renderWorkout = async function (workout) {
+        const weater = await this.weather(...workout.coords);
         let html = `<li class="workout workout--${workout.type}" data-id="${workout.id}">
         <h2 class="workout__title">${workout.description}</h2>
         <div class="workout__details">
@@ -319,6 +320,7 @@ class App {
         </div>
         <button class= "remove__btn">Remove</button>
         <button class= "edit__btn">Edit</button>
+        <div> Погода : ${weater} </div>
     </li>`
         }
         if (workout.type === 'cycling') {
@@ -335,6 +337,7 @@ class App {
         </div>
         <button class= "remove__btn">Remove</button>
         <button class= "edit__btn">Edit</button>
+        <div> Погода : ${weater} </div>
     </li>`
         }
         form.insertAdjacentHTML('afterend', html);
@@ -472,7 +475,18 @@ class App {
     }
 
 
+    weather = async function (lat, lng) {
+        const weat = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m`);
+        const res = await weat.json();
+        const indexTime = res.hourly.time.findIndex((data) => new Date(data).getTime() >= new Date().getTime());
+        return `${new Intl.DateTimeFormat('ru-RU', {
+            hour: 'numeric',
+            minute: 'numeric',
+            day: 'numeric',
+            month: 'long'
+        }).format(new Date(res.hourly.time[indexTime]))}: ${res.hourly.temperature_2m[indexTime]}${res.hourly_units.temperature_2m} `;
 
+    }
 
 }
 
